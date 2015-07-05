@@ -31,13 +31,13 @@ const p = name => print(file => console.log(name, file));
 
 gulp.task('default', ['build']);
 
-gulp.task('build', sequence('clean', 'runtime'));
+gulp.task('build', sequence('clean', 'transpile'));
 gulp.task('package', ['uglify'], () => console.log(`App written to ${paths.package}/app.js !`));
 
 gulp.task('run', () => run(`node ${paths.dist}/index.js ${args.args || ''}`).exec());
 gulp.task('test', () => run(`node ${paths.dist}/tests/index.js ${args.args || ''}`).exec());
 
-gulp.task('watch', ['runtime'], () => gulp.watch(paths.script, ['runtime']));
+gulp.task('watch', ['transpile'], () => gulp.watch(paths.script, ['transpile']));
 gulp.task('dev', ['start_dev'], () => gulp.watch(paths.scripts, ['start_dev']));
 
 gulp.task('transpile', ['jshint'],
@@ -46,8 +46,8 @@ gulp.task('transpile', ['jshint'],
     ,cached('transpile')
     ,p('transpile')
     ,sourcemaps.init()
-    // ,babel()
-    ,traceur({modules: 'commonjs', asyncGenerators: true, forOn: true, asyncFunctions: true})
+    ,babel()
+    // ,traceur({modules: 'commonjs', asyncGenerators: true, forOn: true, asyncFunctions: true})
     ,sourcemaps.write('.')
     ,gulp.dest(paths.dist)
   ])
@@ -63,7 +63,7 @@ gulp.task('runtime', ['transpile'],
   .on('error', function(e) { console.log(e); }));
 
 let devChild = {process: undefined};
-gulp.task('start_dev', ['runtime', 'terminate'],
+gulp.task('start_dev', ['transpile', 'terminate'],
   () => {
     const process = devChild.process = child_process.fork(`./${paths.dist}/index.js`);
 
@@ -105,7 +105,7 @@ gulp.task('uglify', ['bundle'],
     ,gulp.dest(paths.package)
   ]));
 
-gulp.task('bundle', ['runtime'],
+gulp.task('bundle', ['transpile'],
   () => pipe([
     browserify({
       entries: [`./${paths.dist}/index.js`],

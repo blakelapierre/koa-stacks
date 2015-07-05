@@ -1,73 +1,76 @@
-#base-node
+#koa-stacks
 
-A simple and highly configurable base project for ECMAScript 2015 projects.
+A declarative way to create `koa` instances with prewired routes and middleware with optional basic HTTP authentication.
 
-Out-of-the-box support for:
-  1. Packaging your application (including dependencies) into a single, compacted script file.
-  2. Generating a minimal Docker container (<10MB download, <26MB expanded) so that your app can be deployed everywhere.
+Example:
+
+````js
+import http from 'http';
+
+import stacks from 'koa-stacks';
+import bodyparser from 'koa-bodyparser';
+
+const port = process.env.port || 9999;
+
+const {
+  test
+} = stacks({
+  test: {
+    middleware: [bodyparser()],
+    routes: {
+      '/test': {
+        methods: {
+          'get': function *() {
+            this.body = 'test';
+            console.log('/test');
+          }
+        }
+      },
+      '/parameterized/:param': {
+        methods: {
+          'get': function *(param) {
+            this.body = param;
+            console.log(`/parameterized/${param}`);
+          }
+        }
+      },
+      '/protected': {
+        authorization: {
+          type: 'basic',
+          name: 'by',
+          pass: 'password'
+        },
+        methods: {
+          'get': function *() {
+            this.body = 'authorized!';
+            console.log('/protected');
+          }
+        }
+      }
+    }
+  }
+}, console.log);
 
 
-###Installation
-
+http.createServer(test.callback()).listen(port);
+console.log('HTTP server listing on port', port);
 ````
-$ curl https://raw.githubusercontent.com/blakelapierre/base-node/master/create.sh | bash -s your-project-name
-````
 
-The above command will create a new git repository named `your-project-name` in your current directory.
-
-#####OR
-
-
-````
-$ git clone https://github.com/blakelapierre/base-node
-$ cd base-node
-$ npm install -g gulp gulpur
-$ npm install
-````
-
-
-###Building
-
-````
-$ gulpur build
-````
-
-###Running
-
-````
-$ node .dist/index.js
-````
-
-Tests:
+Run the server:
 ````
 $ node .dist/tests/index.js
+Constructing 'test' stack
+Adding 'get' route at '/test'
+Adding 'get' route at '/parameterized/:param'
+Adding protected 'get' route at '/protected'
+HTTP server listing on port 9999
 ````
 
-###Developing
-This command will watch your source files for changes and run them through `jshint` and the transpiler when they change.
-
+Now run:
 ````
-$ gulpur watch
+$ curl by:password@localhost:9999/protected
+authorized!
+
+$ curl localhost:9999/parameterized/my_param
+my_param
 ````
-
------------
-This command will do what `watch` does, but will also run your program after transpiling and will restart it after each transpile.
-
-````
-$ gulpur dev
-````
-
-
-###Containerizing
-
-
-````
-$ gulpur package
-$ cd container
-$ ./build.sh
-$ ./publish.sh
-````
-
-First, run the `package` task to produce a single-file, minimized version of your app.
-
-Then, go into the `container` folder to access the scripts to package your app into a Docker container. You should edit the `build.sh` and `publish.sh` scripts to use a container name that fits your project name.
