@@ -12,14 +12,14 @@ Example:
 ````js
 import http from 'http';
 
-import stacks from 'koa-stacks';
+import constructStacks from 'koa-stacks';
 import bodyparser from 'koa-bodyparser';
 
 const port = process.env.port || 9999;
 
 const {
   test
-} = stacks({
+} = constructStacks({
   test: {
     middleware: [bodyparser()],
     routes: {

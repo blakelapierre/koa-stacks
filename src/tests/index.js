@@ -45,6 +45,5 @@ const {
   }
 }, console.log);
 
-
 http.createServer(test.callback()).listen(port);
 console.log('HTTP server listing on port', port);
