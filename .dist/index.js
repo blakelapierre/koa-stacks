@@ -85,12 +85,7 @@ module.exports = function (stacks, log) {
 
         path = parentPath + path;
 
-        if (authorization) {
-          return [{
-            path: path,
-            authorization: authorization
-          }].concat(getRouteAuthorizations(routes, path));
-        } else return getRouteAuthorizations(routes, path);
+        return (authorization ? [{ path: path, authorization: authorization }] : []).concat(getRouteAuthorizations(routes, path));
       })), function (value) {
         return value !== undefined;
       });

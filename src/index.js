@@ -63,15 +63,7 @@ module.exports = (stacks, log) => {
 
         path = parentPath + path;
 
-        if (authorization) {
-          return [{
-            path,
-            authorization,
-          }].concat(getRouteAuthorizations(routes, path));
-        }
-        else return getRouteAuthorizations(routes, path);
-
-
+        return (authorization ? [{path, authorization}] : []).concat(getRouteAuthorizations(routes, path));
       })), value => value !== undefined);
     }
 
