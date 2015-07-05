@@ -1,6 +1,6 @@
 #koa-stacks
 
-A declarative way to create [`koa`](https://github.com/koajs/koa) instances with prewired routes and middleware with optional basic HTTP authentication.
+Combines [`koa-route`](https://github.com/koajs/route), [`koa-mount`](https://github.com/koajs/mount), and [`koa-basic-auth`](https://github.com/koajs/basic-auth) to provide a declarative way to create [`koa`](https://github.com/koajs/koa) instances with prewired routes and middleware with optional and highly-configurable basic HTTP authentication.
 
 Install:
 ````
@@ -82,3 +82,53 @@ Unauthorized
 $ curl localhost:9999/parameterized/my_param
 my_param
 ````
+
+
+You can place
+````
+authorization: {
+  type: 'basic',
+  name: 'user_name',
+  pass: 'some_password'
+}
+````
+directly on your stack:
+````
+{
+  myStack: {
+    authorization: {
+      type: 'basic',
+      name: 'my',
+      pass: 'pass'
+    },
+    routes: {
+      '/': {
+        methods: {
+          'get': getRoot
+        }
+      }
+    }
+  }
+}
+````
+or directly on your routes:
+````
+{
+  myStack: {
+    routes: {
+      '/': {
+        authorization: {
+          type: 'basic',
+          name: 'my',
+          pass: 'pass'
+        },
+        methods: {
+          'get': getRoot
+        }
+      }
+    }
+  }
+}
+````
+
+Nested authorizations not tested!
