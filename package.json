@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Declarative koa routing",
   "repository": "https://github.com/blakelapierre/koa-stacks",
-  "main": "index.js",
+  "main": ".dist/index.js",
   "author": "Blake La Pierre",
   "license": "MIT",
   "devDependencies": {
