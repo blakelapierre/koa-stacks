@@ -1,6 +1,11 @@
 #koa-stacks
 
-A declarative way to create `koa` instances with prewired routes and middleware with optional basic HTTP authentication.
+A declarative way to create [`koa`](https://github.com/koajs/koa) instances with prewired routes and middleware with optional basic HTTP authentication.
+
+Install:
+````
+$ npm install --save koa-stacks
+````
 
 Example:
 
@@ -70,6 +75,9 @@ Now run:
 ````
 $ curl by:password@localhost:9999/protected
 authorized!
+
+$ curl localhost:9999/protected
+Unauthorized
 
 $ curl localhost:9999/parameterized/my_param
 my_param
