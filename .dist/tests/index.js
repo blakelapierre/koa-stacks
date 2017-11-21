@@ -1,87 +1,57 @@
-'use strict';
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _http = require('http');
-
-var _http2 = _interopRequireDefault(_http);
-
-var _ = require('../');
-
-var _2 = _interopRequireDefault(_);
-
-var _koaBodyparser = require('koa-bodyparser');
-
-var _koaBodyparser2 = _interopRequireDefault(_koaBodyparser);
-
-var port = process.env.port || 9999;
-
-var _stacks = (0, _2['default'])({
-  test: {
-    middleware: [(0, _koaBodyparser2['default'])()],
-    routes: {
-      '/test': {
-        methods: {
-          'get': regeneratorRuntime.mark(function get() {
-            return regeneratorRuntime.wrap(function get$(context$1$0) {
-              while (1) switch (context$1$0.prev = context$1$0.next) {
-                case 0:
-                  this.body = 'test';
-                  console.log('/test');
-
-                case 2:
-                case 'end':
-                  return context$1$0.stop();
-              }
-            }, get, this);
-          })
-        }
-      },
-      '/parameterized/:param': {
-        methods: {
-          'get': regeneratorRuntime.mark(function get(param) {
-            return regeneratorRuntime.wrap(function get$(context$1$0) {
-              while (1) switch (context$1$0.prev = context$1$0.next) {
-                case 0:
-                  this.body = param;
-                  console.log('/parameterized/' + param);
-
-                case 2:
-                case 'end':
-                  return context$1$0.stop();
-              }
-            }, get, this);
-          })
-        }
-      },
-      '/protected': {
-        authorization: {
-          type: 'basic',
-          name: 'by',
-          pass: 'password'
-        },
-        methods: {
-          'get': regeneratorRuntime.mark(function get() {
-            return regeneratorRuntime.wrap(function get$(context$1$0) {
-              while (1) switch (context$1$0.prev = context$1$0.next) {
-                case 0:
-                  this.body = 'authorized!';
-                  console.log('/protected');
-
-                case 2:
-                case 'end':
-                  return context$1$0.stop();
-              }
-            }, get, this);
-          })
-        }
-      }
+(function (factory) {
+    if (typeof module === "object" && typeof module.exports === "object") {
+        var v = factory(require, exports);
+        if (v !== undefined) module.exports = v;
     }
-  }
-}, console.log);
+    else if (typeof define === "function" && define.amd) {
+        define(["require", "exports", "http", "../", "koa-bodyparser"], factory);
+    }
+})(function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const http = require("http");
+    const _1 = require("../");
+    const bodyparser = require("koa-bodyparser");
+    const port = process.env.port || 9999;
+    const { test } = _1.default({
+        test: {
+            middleware: [bodyparser()],
+            routes: {
+                '/test': {
+                    methods: {
+                        'get': function* () {
+                            this.body = 'test';
+                            console.log('/test');
+                        }
+                    }
+                },
+                '/parameterized/:param': {
+                    methods: {
+                        'get': function* (param) {
+                            this.body = param;
+                            console.log(`/parameterized/${param}`);
+                        }
+                    }
+                },
+                '/protected': {
+                    authorization: {
+                        type: 'basic',
+                        name: 'by',
+                        pass: 'password'
+                    },
+                    methods: {
+                        'get': function* () {
+                            this.body = 'authorized!';
+                            console.log('/protected');
+                        }
+                    }
+                }
+            }
+        }
+    }, console.log);
+    console.log('test');
+    http.createServer(test.callback()).listen(port);
+    console.log('HTTP server listing on port', port);
+});
 
-var test = _stacks.test;
-
-_http2['default'].createServer(test.callback()).listen(port);
-console.log('HTTP server listing on port', port);
-//# sourceMappingURL=../tests/index.js.map
+//# sourceMappingURL=index.js.map

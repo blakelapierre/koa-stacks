@@ -1,14 +1,14 @@
-require('babel/polyfill');
+import * as koa from 'koa';
+import * as auth from 'koa-basic-auth';
+import * as mount from 'koa-mount';
+import * as route from 'koa-route';
+import * as _ from 'lodash';
 
-import koa from 'koa';
-import auth from 'koa-basic-auth';
-import mount from 'koa-mount';
-import route from 'koa-route';
-import _ from 'lodash';
+import authorizationRedirect from './authorizationRedirect';
 
-const authorizationRedirect = require('./authorizationRedirect');
+// const authorizationRedirect = require('./authorizationRedirect');
 
-module.exports = (stacks, log) => {
+export default (stacks, log) => {
   log = log || (() => {});
 
   return _.mapValues(stacks, (stack, stackName) => {
@@ -20,7 +20,7 @@ module.exports = (stacks, log) => {
       routes
     } = stack;
 
-    const server = koa(),
+    const server = new koa(),
           {use} = server;
 
     if (authorization) {

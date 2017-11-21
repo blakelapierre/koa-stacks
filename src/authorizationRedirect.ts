@@ -1,6 +1,4 @@
-module.exports = authorizationRedirect;
-
-function *authorizationRedirect(next){
+export default function *authorizationRedirect(next){
   try {
     yield next;
   } catch (err) {

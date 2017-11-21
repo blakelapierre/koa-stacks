@@ -7,18 +7,16 @@ const browserify = require('browserify'),
       source = require('vinyl-source-stream');
 
 const {
-  babel,
   cached,
   clean,
   concat,
-  jshint,
   pipe,
   print,
   run,
   sequence,
   sourcemaps,
   tasks,
-  traceur,
+  typescript,
   uglify
 } = require('gulp-load-plugins')();
 
@@ -26,6 +24,7 @@ const args = minimist(process.argv.slice(2));
 
 const result = tasks(gulp, require);
 if (typeof result === 'string') console.log(result);
+
 
 const p = name => print(file => console.log(name, file));
 
@@ -35,32 +34,34 @@ gulp.task('build', sequence('clean', 'transpile'));
 gulp.task('package', ['uglify'], () => console.log(`App written to ${paths.package}/app.js !`));
 
 gulp.task('run', () => run(`node ${paths.dist}/index.js ${args.args || ''}`).exec());
-gulp.task('test', () => run(`node ${paths.dist}/tests/index.js ${args.args || ''}`).exec());
+// seems to be broke for me
+gulp.task('test',
+  () => pipe([
+    run(`node index.js ${args.args || ''}`, {cwd: `./${paths.dist}/tests`}).exec()
+    ,gulp.dest('output')
+  ]));
 
 gulp.task('watch', ['transpile'], () => gulp.watch(paths.script, ['transpile']));
 gulp.task('dev', ['start_dev'], () => gulp.watch(paths.scripts, ['start_dev']));
 
-gulp.task('transpile', ['jshint'],
+gulp.task('transpile',
   () => pipe([
     gulp.src(paths.scripts)
     ,cached('transpile')
     ,p('transpile')
     ,sourcemaps.init()
-    ,babel()
+    ,typescript({
+      target: 'ES6',
+      module: 'umd',
+      moduleResolution: 'node',
+      lib: ['es2017']
+    }, typescript.reporter.defaultReporter())
+    // ,babel()
     // ,traceur({modules: 'commonjs', asyncGenerators: true, forOn: true, asyncFunctions: true})
     ,sourcemaps.write('.')
     ,gulp.dest(paths.dist)
-  ])
-  .on('error', function(e) { console.log(e); }));
+  ]));
 
-gulp.task('runtime', ['transpile'],
-  () => pipe([
-    gulp.src([traceur.RUNTIME_PATH])
-    ,p('runtime')
-    ,concat('traceur-runtime.js')
-    ,gulp.dest(paths.dist)
-  ])
-  .on('error', function(e) { console.log(e); }));
 
 let devChild = {process: undefined};
 gulp.task('start_dev', ['transpile', 'terminate'],
@@ -117,16 +118,6 @@ gulp.task('bundle', ['transpile'],
     ,gulp.dest(paths.package)
   ]));
 
-gulp.task('jshint',
-  () => pipe([
-    gulp.src(paths.scripts)
-    ,cached('jshint')
-    ,p('jshint')
-    ,jshint()
-    ,jshint.reporter('jshint-stylish')
-    ,jshint.reporter('fail')
-  ]));
-
 gulp.task('clean',
   () => pipe([
     gulp.src(paths.dist, {read: false})
@@ -134,7 +125,7 @@ gulp.task('clean',
   ]));
 
 const paths = {
-  scripts: ['src/**/*.js'],
+  scripts: ['src/**/*.ts'],
   dist: '.dist',
   package: '.package'
 };

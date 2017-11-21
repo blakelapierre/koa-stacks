@@ -1,8 +1,8 @@
-import http from 'http';
+import * as http from 'http';
 
 import stacks from '../';
 
-import bodyparser from 'koa-bodyparser';
+import * as bodyparser from 'koa-bodyparser';
 
 const port = process.env.port || 9999;
 
@@ -44,6 +44,8 @@ const {
     }
   }
 }, console.log);
+
+console.log('test');
 
 http.createServer(test.callback()).listen(port);
 console.log('HTTP server listing on port', port);

@@ -1,0 +1,8 @@
+test1
+test
+Constructing 'test' stack
+Adding 'get' route at '/test'
+Adding 'get' route at '/parameterized/:param'
+Adding protected 'get' route at '/protected'
+test
+HTTP server listing on port 9999

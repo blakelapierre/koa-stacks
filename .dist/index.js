@@ -1,112 +1,70 @@
-'use strict';
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _koa = require('koa');
-
-var _koa2 = _interopRequireDefault(_koa);
-
-var _koaBasicAuth = require('koa-basic-auth');
-
-var _koaBasicAuth2 = _interopRequireDefault(_koaBasicAuth);
-
-var _koaMount = require('koa-mount');
-
-var _koaMount2 = _interopRequireDefault(_koaMount);
-
-var _koaRoute = require('koa-route');
-
-var _koaRoute2 = _interopRequireDefault(_koaRoute);
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-require('babel/polyfill');
-
-var authorizationRedirect = require('./authorizationRedirect');
-
-module.exports = function (stacks, log) {
-  log = log || function () {};
-
-  return _lodash2['default'].mapValues(stacks, function (stack, stackName) {
-    log('Constructing \'' + stackName + '\' stack');
-
-    var authorization = stack.authorization;
-    var middleware = stack.middleware;
-    var routes = stack.routes;
-    var server = (0, _koa2['default'])();
-    var use = server.use;
-
-    if (authorization) {
-      var type = authorization.type;
-
-      if (type === 'basic') {
-        var _name = authorization.name;
-        var pass = authorization.pass;
-
-        use.call(server, authorizationRedirect);
-        use.call(server, (0, _koaBasicAuth2['default'])({ name: _name, pass: pass }));
-      }
+(function (factory) {
+    if (typeof module === "object" && typeof module.exports === "object") {
+        var v = factory(require, exports);
+        if (v !== undefined) module.exports = v;
     }
-
-    var routeAuthorizations = getRouteAuthorizations(routes);
-
-    if (routeAuthorizations.length > 0) {
-      if (!authorization) use.call(server, authorizationRedirect);
-
-      _lodash2['default'].each(routeAuthorizations, function (routeAuthorization) {
-        var path = routeAuthorization.path;
-        var authorization = routeAuthorization.authorization;
-        var type = authorization.type;
-
-        if (type === 'basic') {
-          var _name2 = authorization.name;
-          var pass = authorization.pass;
-
-          use.call(server, (0, _koaMount2['default'])(path, (0, _koaBasicAuth2['default'])({ name: _name2, pass: pass })));
-        }
-      });
+    else if (typeof define === "function" && define.amd) {
+        define(["require", "exports", "koa", "koa-basic-auth", "koa-mount", "koa-route", "lodash", "./authorizationRedirect"], factory);
     }
+})(function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const koa = require("koa");
+    const auth = require("koa-basic-auth");
+    const mount = require("koa-mount");
+    const route = require("koa-route");
+    const _ = require("lodash");
+    const authorizationRedirect_1 = require("./authorizationRedirect");
+    // const authorizationRedirect = require('./authorizationRedirect');
+    exports.default = (stacks, log) => {
+        log = log || (() => { });
+        return _.mapValues(stacks, (stack, stackName) => {
+            log(`Constructing '${stackName}' stack`);
+            const { authorization, middleware, routes } = stack;
+            const server = new koa(), { use } = server;
+            if (authorization) {
+                const { type } = authorization;
+                if (type === 'basic') {
+                    const { name, pass } = authorization;
+                    use.call(server, authorizationRedirect_1.default);
+                    use.call(server, auth({ name, pass }));
+                }
+            }
+            const routeAuthorizations = getRouteAuthorizations(routes);
+            if (routeAuthorizations.length > 0) {
+                if (!authorization)
+                    use.call(server, authorizationRedirect_1.default);
+                _.each(routeAuthorizations, routeAuthorization => {
+                    const { path, authorization } = routeAuthorization, { type } = authorization;
+                    if (type === 'basic') {
+                        const { name, pass } = authorization;
+                        use.call(server, mount(path, auth({ name, pass })));
+                    }
+                });
+            }
+            _.each(middleware || [], use.bind(server));
+            _.each(routes, addRoute);
+            return server;
+            function getRouteAuthorizations(routes = {}, parentPath = '') {
+                return _.filter(_.flatten(_.map(routes, (definition, path) => {
+                    const { authorization, routes } = definition;
+                    path = parentPath + path;
+                    return (authorization ? [{ path, authorization }] : []).concat(getRouteAuthorizations(routes, path));
+                })), value => value !== undefined);
+            }
+            function addRoute(definition, path) {
+                const { methods, routes, authorization } = definition;
+                _.each(methods, (handler, method) => {
+                    log(`Adding ${authorization ? 'protected ' : ''}'${method}' route at '${path}'`);
+                    use.call(server, route[method](path, handler));
+                });
+                _.each(routes, addSubRoute);
+                function addSubRoute(subDefinition, subPath) {
+                    addRoute(subDefinition, path + subPath);
+                }
+            }
+        });
+    };
+});
 
-    _lodash2['default'].each(middleware || [], use.bind(server));
-
-    _lodash2['default'].each(routes, addRoute);
-
-    return server;
-
-    function getRouteAuthorizations() {
-      var routes = arguments[0] === undefined ? {} : arguments[0];
-      var parentPath = arguments[1] === undefined ? '' : arguments[1];
-
-      return _lodash2['default'].filter(_lodash2['default'].flatten(_lodash2['default'].map(routes, function (definition, path) {
-        var authorization = definition.authorization;
-        var routes = definition.routes;
-
-        path = parentPath + path;
-
-        return (authorization ? [{ path: path, authorization: authorization }] : []).concat(getRouteAuthorizations(routes, path));
-      })), function (value) {
-        return value !== undefined;
-      });
-    }
-
-    function addRoute(definition, path) {
-      var methods = definition.methods;
-      var routes = definition.routes;
-      var authorization = definition.authorization;
-
-      _lodash2['default'].each(methods, function (handler, method) {
-        log('Adding ' + (authorization ? 'protected ' : '') + '\'' + method + '\' route at \'' + path + '\'');
-        use.call(server, _koaRoute2['default'][method](path, handler));
-      });
-
-      _lodash2['default'].each(routes, addSubRoute);
-
-      function addSubRoute(subDefinition, subPath) {
-        addRoute(subDefinition, path + subPath);
-      }
-    }
-  });
-};
 //# sourceMappingURL=index.js.map
