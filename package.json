@@ -1,6 +1,6 @@
 {
   "name": "koa-stacks",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Declarative koa routing",
   "repository": "https://github.com/blakelapierre/koa-stacks",
   "main": ".dist/index.js",
